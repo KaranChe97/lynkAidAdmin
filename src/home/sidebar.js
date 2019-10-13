@@ -30,46 +30,7 @@ class SideBar extends Component{
 
     state={
         regions:[
-            {
-                id: 1,
-                regionName: "Mylapore",
-                severity : "moderate"
-            },
-            {
-                id: 2,
-                regionName: "Adyar",
-                severity : "severe"
-            },
-            {
-                id: 3,
-                regionName: "Thiruvanmiyur",
-                severity : "safe"
-            },
-            {
-                id: 4,
-                regionName: "Guindy",
-                severity : "moderate"
-            },
-            {
-                id: 5,
-                regionName: "Adambakam",
-                severity : "safe"
-            },
-            {
-                id: 6,
-                regionName: "Thiruvanmiyur",
-                severity : "safe"
-            },
-            {
-                id: 7,
-                regionName: "Guindy",
-                severity : "moderate"
-            },
-            {
-                id: 8,
-                regionName: "Adambakam",
-                severity : "moderate"
-            },
+            
         ],
         selectedRegion : ""
     }

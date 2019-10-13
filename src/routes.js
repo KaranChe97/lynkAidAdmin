@@ -8,8 +8,8 @@ export default class Routes extends Component {
 		return (
 			<Router>
 				<Switch>
-					<Route exact path='/' component={Home} />		
-                    <Route exact path="/zone" component = {Feed} />			
+					<Route exact path='/zone' component={Home} />		
+                    <Route exact path="/" component = {Feed} />			
 				</Switch>
 			</Router>
 		);

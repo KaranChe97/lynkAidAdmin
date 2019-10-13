@@ -46,14 +46,25 @@ const Marker = props => (
   type='shopping' 
   style={{ color: "#E91E63", fontSize: 15 }}
   theme='filled'
-/> :null
+/>:
+
+  props.type === "volunteers"?
+    <Icon
+    onClick={async () => {
+      props.setSelectedMarker(props.data, props.type);
+    }}
+    type='thunderbolt' 
+    style={{ color: "#FF5722", fontSize: 15 }}
+    theme='filled'
+  />
+  :null
     }
     </Tooltip>
 );
 
 
 const CheckboxGroup = Checkbox.Group;
-const plainOptions = ['Rescue Requests', 'Restore Points', 'Offer Goods', 'Goods Requests'];
+const plainOptions = ['Rescue Requests', 'Restore Points', 'Offer Goods', 'Goods Requests', 'Volunteers'];
 const defaultCheckedList = ['Rescue Requests', 'Restore Points'];
 
 class Main extends React.Component {
@@ -98,7 +109,9 @@ class Main extends React.Component {
         componentDidUpdate(){
             // console.log( "UPDATE",this.props.coords)
             if(!this.state.rangeData){
-              this.getNearbyLocations(this.props.coords)
+              if(this.props.coords){
+                this.getNearbyLocations(this.props.coords)
+              }
             }
         }  
         
@@ -144,6 +157,8 @@ class Main extends React.Component {
      const  rescueRequests = this.state.rangeData ? this.state.rangeData.rescueRequests : null;
      const  offerGoodsRequest = this.state.rangeData ? this.state.rangeData.offerGoodsRequest : null;
      const goodsRequest = this.state.rangeData ? this.state.rangeData.goodsRequest : null;
+     const volunteers = this.state.rangeData ? this.state.rangeData.volunteers : null;
+
      const centerPoint = restorePoints && restorePoints.length ? {
        lat : restorePoints[0].location.coordinates[0],
        lng : restorePoints[0].location.coordinates[1]
@@ -185,10 +200,13 @@ class Main extends React.Component {
           </div>
               {
                 this.state.rangeData && this.state.rangeData.rescueRequests ? null :
-                <Button type="primary" onClick={this.showModal}>
+                <Button type="primary" onClick={this.showModal} style={{marginTop:"20px"}}>
                   Register as Service Point
                 </Button>
               }
+             &nbsp;&nbsp; <Button type="primary" onClick={this.showModal} style={{marginTop:"20px"}}>
+                  Register as Service Point
+                </Button>
                 <Modal
                 title="Register as  service Point"
                 visible={this.state.visible}
@@ -196,14 +214,15 @@ class Main extends React.Component {
                 footer={null}>
                     <Geoloc {...this.props} handleCancel = {this.handleCancel} />       
                 </Modal>
+                <hr />
               {
-                this.state.selectedPlace ? <InfoCard data={this.state.selectedPlace} type={this.state.selectedType}  /> : null 
+                this.state.selectedPlace ? <InfoCard data={this.state.selectedPlace} type={this.state.selectedType}  style={{paddingTop:"20px"}} /> : null 
               }
               
             </Col>
             <Col span={16} style={{height:"100%", backgroundColor:"black"}}>
             <GoogleMapReact
-                bootstrapURLKeys={{ key: "AIzaSyC3_Kdx6Wr2gO-wKnOBiproKKhgaTdIVAg" }}
+                bootstrapURLKeys={{ key: " YOUR_API_KEY_HERE" }}
                 defaultCenter={centerPoint} 
                 defaultZoom={12}
                 >
@@ -244,12 +263,26 @@ class Main extends React.Component {
                       />})
                           :null
                     }
+
                     {
                       this.state.checkedList.includes("Goods Requests") && goodsRequest && goodsRequest.length ?
                       goodsRequest.map((data,index) => {
                           return <Marker key={index} 
                           data ={data}
                           type="requestGoods"
+                          setSelectedMarker = {this.setSelectedMarker}
+                          lat={data.location.coordinates[0]}
+                          lng={data.location.coordinates[1]}
+                      />})
+                          :null
+                    }
+
+                    {
+                      this.state.checkedList.includes("Volunteers") && volunteers && volunteers.length ?
+                      volunteers.map((data,index) => {
+                          return <Marker key={index} 
+                          data ={data}
+                          type="volunteers"
                           setSelectedMarker = {this.setSelectedMarker}
                           lat={data.location.coordinates[0]}
                           lng={data.location.coordinates[1]}
