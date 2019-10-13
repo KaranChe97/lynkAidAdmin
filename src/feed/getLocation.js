@@ -2,8 +2,11 @@ import React from 'react';
 import {geolocated} from 'react-geolocated';
 import Geoloc from './geoLoc';
 import GoogleMapReact  from 'google-map-react';
+import constants from "../constant";
+import {Modal, Button, Row, Col , Icon, message , Slider}  from 'antd';
 
-import {Modal, Button, Row, Col , Icon, }  from 'antd';
+const axios = require('axios').default;
+
 
 const Marker = props => (
     <Icon
@@ -18,26 +21,73 @@ const Marker = props => (
 
 
 class Main extends React.Component {
-    
-        state = { visible: false };
+
+        state = { 
+            visible: false,
+            radius : 50,
+
+        };
 
         showModal = () => {
           this.setState({
             visible: true,
           });
         };
+
+        // componentDidMount = () => {
+        //     this.getNearbyLocations()
+        // }
+        componentDidUpdate(){
+            console.log( "UPDATE",this.props.coords)
+            this.getNearbyLocations(this.props.coords)
+        }  
+        
+        
+
+        getNearbyLocations = (coords) => {
+            axios.post(constants.get_nearby_details, {
+            coordinates:[coords.latitude, coords.longitude],
+            radius: this.state.radius
+        })
+        .then(res => {
+            if(res.data.error){
+                message.error("can't fetch data")                    
+            }
+            else {
+                         
+              console.log("success",res.data.data)
+            }
+        })
+        .catch(err => console.log("error", err))
+        }
       
         handleCancel = e => {
           this.setState({
             visible: false,
           });}
         
+          onChange = e => {
+              console.log(e.target.value)
+          }
+          onAfterChange = e => {
+              console.log("onAferChange", e.target.value)
+          }
       
   render() {
+     
     return (
       <div style={{padding:"2%", height:"100vh"}}>
         <Row style={{height:"inherit"}}>
             <Col span={8}>
+            <label>Select Range</label>
+            <Slider
+                range
+                step={10}
+                defaultValue={[20, 50]}
+                onChange={this.onChange}
+                onAfterChange={this.onAfterChange} 
+                />
+
                 <Button type="primary" onClick={this.showModal}>
                     Register as Service Point
                 </Button>

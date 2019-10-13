@@ -15,7 +15,7 @@ export const Header = props => {
                     </Col>
                     <Col span={4} className="feedLink">
                         <div >
-                            <a href="/feed" style={{color:"white", fontWeight:"bold"}}> Go to Feeds </a> 
+                            <a href="/zone" style={{color:"white", fontWeight:"bold"}}> Go to your Zone </a> 
                         </div>
                     </Col>
                 </Row> 
