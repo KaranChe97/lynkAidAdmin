@@ -3,29 +3,73 @@ import {geolocated} from 'react-geolocated';
 import Geoloc from './geoLoc';
 import GoogleMapReact  from 'google-map-react';
 import constants from "../constant";
-import {Modal, Button, Row, Col , Icon, message , Slider}  from 'antd';
+import InfoCard from './infoCard';  
+import {Modal, Button, Row, Col , Icon, message , Slider, Tooltip, Checkbox}  from 'antd';
 
 const axios = require('axios').default;
 
 
 const Marker = props => (
+  <Tooltip  title={props.data.name}>
+    {
+      props.type==="restorePoints"?
     <Icon
-      // onClick={async () => {
-      //   props.filterData(props.responseId);
-      // }}
-      type='exclamation-circle' 
-      style={{ color: "red", fontSize: 15 }}
+      onClick={async () => {
+        props.setSelectedMarker(props.data, props.type);
+      }}
+      type='home' 
+      style={{ color: "green", fontSize: 15 }}
       theme='filled'
-    />
+    />:
+    props.type==="rescueRequest" ?
+    <Icon
+    onClick={async () => {
+      props.setSelectedMarker(props.data, props.type);
+    }}
+    type='info-circle' 
+    style={{ color: "red", fontSize: 20 }}
+    theme='filled'
+  />:
+  props.type === "offersGoods"?
+    <Icon
+    onClick={async () => {
+      props.setSelectedMarker(props.data, props.type);
+    }}
+    type='carry-out' 
+    style={{ color: "#3d5afe", fontSize: 15 }}
+    theme='filled'
+  />: 
+  props.type === "requestGoods" ? <Icon
+  onClick={async () => {
+    props.setSelectedMarker(props.data, props.type);
+  }}
+  type='shopping' 
+  style={{ color: "#E91E63", fontSize: 15 }}
+  theme='filled'
+/> :null
+    }
+    </Tooltip>
 );
 
+
+const CheckboxGroup = Checkbox.Group;
+const plainOptions = ['Rescue Requests', 'Restore Points', 'Offer Goods', 'Goods Requests'];
+const defaultCheckedList = ['Rescue Requests', 'Restore Points'];
 
 class Main extends React.Component {
 
         state = { 
             visible: false,
             radius : 50,
-
+            rangeData : null,
+            selectedPlace : null,
+            showVictims: true,
+            showDonators: true,
+            showVolunteers: true,
+            showAccomodations : true,
+            checkedList: defaultCheckedList,
+            indeterminate: true,
+            checkAll: false,
         };
 
         showModal = () => {
@@ -34,28 +78,50 @@ class Main extends React.Component {
           });
         };
 
-        // componentDidMount = () => {
-        //     this.getNearbyLocations()
-        // }
+
+  onChange = checkedList => {
+    this.setState({
+      checkedList,
+      indeterminate: !!checkedList.length && checkedList.length < plainOptions.length,
+      checkAll: checkedList.length === plainOptions.length,
+    });
+  };
+
+  onCheckAllChange = e => {
+    this.setState({
+      checkedList: e.target.checked ? plainOptions : [],
+      indeterminate: false,
+      checkAll: e.target.checked,
+    });
+  };
+
         componentDidUpdate(){
-            console.log( "UPDATE",this.props.coords)
-            this.getNearbyLocations(this.props.coords)
+            // console.log( "UPDATE",this.props.coords)
+            if(!this.state.rangeData){
+              this.getNearbyLocations(this.props.coords)
+            }
         }  
         
-        
-
+        setSelectedMarker = (data, type) => {
+          this.setState({
+            selectedPlace : data,
+            selectedType: type
+          })
+        }
+      
         getNearbyLocations = (coords) => {
             axios.post(constants.get_nearby_details, {
             coordinates:[coords.latitude, coords.longitude],
-            radius: this.state.radius
+            radius: this.state.radius * 1000
         })
         .then(res => {
             if(res.data.error){
                 message.error("can't fetch data")                    
             }
             else {
-                         
-              console.log("success",res.data.data)
+              this.setState({
+                rangeData: res.data.data
+              })           
             }
         })
         .catch(err => console.log("error", err))
@@ -66,31 +132,63 @@ class Main extends React.Component {
             visible: false,
           });}
         
-          onChange = e => {
-              console.log(e.target.value)
-          }
+       
           onAfterChange = e => {
-              console.log("onAferChange", e.target.value)
+            this.setState({
+              radius : e
+            },() => this.getNearbyLocations(this.props.coords) )
           }
       
   render() {
-     
+     const  restorePoints = this.state.rangeData ? this.state.rangeData.restorePoints : null;
+     const  rescueRequests = this.state.rangeData ? this.state.rangeData.rescueRequests : null;
+     const  offerGoodsRequest = this.state.rangeData ? this.state.rangeData.offerGoodsRequest : null;
+     const goodsRequest = this.state.rangeData ? this.state.rangeData.goodsRequest : null;
+     const centerPoint = restorePoints && restorePoints.length ? {
+       lat : restorePoints[0].location.coordinates[0],
+       lng : restorePoints[0].location.coordinates[1]
+     } : {
+        lat: 13.00032,
+        lng: 80.21624
+     }
     return (
-      <div style={{padding:"2%", height:"100vh"}}>
+      <div style={{padding:"2%", height:"91vh"}}>
         <Row style={{height:"inherit"}}>
             <Col span={8}>
-            <label>Select Range</label>
-            <Slider
-                range
+            {
+              this.props.coords?
+              <div>
+                <label>Select Range</label>
+                <Slider
                 step={10}
-                defaultValue={[20, 50]}
-                onChange={this.onChange}
+                min={50}
                 onAfterChange={this.onAfterChange} 
                 />
-
+              </div> : null
+            }
+            <div>
+          <div style={{ borderBottom: '1px solid #E9E9E9' }}>
+              <Checkbox
+                indeterminate={this.state.indeterminate}
+                onChange={this.onCheckAllChange}
+                checked={this.state.checkAll}
+              >
+                Check all
+              </Checkbox>
+            </div>
+            <br />
+            <CheckboxGroup
+              options={plainOptions}
+              value={this.state.checkedList}
+              onChange={this.onChange}
+            />
+          </div>
+              {
+                this.state.rangeData && this.state.rangeData.rescueRequests ? null :
                 <Button type="primary" onClick={this.showModal}>
-                    Register as Service Point
+                  Register as Service Point
                 </Button>
+              }
                 <Modal
                 title="Register as  service Point"
                 visible={this.state.visible}
@@ -98,29 +196,70 @@ class Main extends React.Component {
                 footer={null}>
                     <Geoloc {...this.props} handleCancel = {this.handleCancel} />       
                 </Modal>
+              {
+                this.state.selectedPlace ? <InfoCard data={this.state.selectedPlace} type={this.state.selectedType}  /> : null 
+              }
+              
             </Col>
             <Col span={16} style={{height:"100%", backgroundColor:"black"}}>
-            {/* <GoogleMapReact
+            <GoogleMapReact
                 bootstrapURLKeys={{ key: "AIzaSyC3_Kdx6Wr2gO-wKnOBiproKKhgaTdIVAg" }}
-                defaultCenter={{
-                    lat: 13.00032,
-                    lng: 80.21624
-                    }} 
+                defaultCenter={centerPoint} 
                 defaultZoom={12}
                 >
                     {
-                      locationArr ?
-                        locationArr[0].map((data,index) => {
-                        console.log(data)
+                      this.state.checkedList.includes("Restore Points") && restorePoints && restorePoints.length ?
+                        restorePoints.map((data,index) => {
                         return <Marker key={index} 
                         data ={data}
-                        lat={data[0]}
-                        lng={data[1]}
-                        draggable = {true}
+                        type="restorePoints"
+                        setSelectedMarker = {this.setSelectedMarker}
+                        lat={data.location.coordinates[0]}
+                        lng={data.location.coordinates[1]}
                     />})
                         :null
-                    }                   
-            </GoogleMapReact>  */}
+                    }
+                     
+                    {
+                      this.state.checkedList.includes("Rescue Requests") && rescueRequests && rescueRequests.length ?
+                      rescueRequests.map((data,index) => {
+                          return <Marker key={index} 
+                          type="rescueRequest"
+                          data ={data}
+                          setSelectedMarker = {this.setSelectedMarker}
+                          lat={data.location.coordinates[0]}
+                          lng={data.location.coordinates[1]}
+                      />})
+                          :null
+                    }
+                     {
+                      this.state.checkedList.includes("Offer Goods") && offerGoodsRequest && offerGoodsRequest.length ?
+                      offerGoodsRequest.map((data,index) => {
+                          return <Marker key={index} 
+                          data ={data}
+                          type="offersGoods"
+                          setSelectedMarker = {this.setSelectedMarker}
+                          lat={data.location.coordinates[0]}
+                          lng={data.location.coordinates[1]}
+                      />})
+                          :null
+                    }
+                    {
+                      this.state.checkedList.includes("Goods Requests") && goodsRequest && goodsRequest.length ?
+                      goodsRequest.map((data,index) => {
+                          return <Marker key={index} 
+                          data ={data}
+                          type="requestGoods"
+                          setSelectedMarker = {this.setSelectedMarker}
+                          lat={data.location.coordinates[0]}
+                          lng={data.location.coordinates[1]}
+                      />})
+                          :null
+                    }
+
+
+
+            </GoogleMapReact> 
 
             </Col>
         </Row>

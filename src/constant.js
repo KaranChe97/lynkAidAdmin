@@ -1,4 +1,4 @@
-const API_URL = 'http://172.18.13.193:3000/'
+const API_URL = 'https://lynk-aid-backend.herokuapp.com/'
 
 module.exports = {
     get_list_of_regions: `${API_URL}zone/getallzones`,
